@@ -1,12 +1,17 @@
-﻿using System;
+﻿using System.Threading.Tasks;
 
 namespace AdministratorBot
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
+            => new Program().MainAsync().GetAwaiter().GetResult();
+
+        public async Task MainAsync()
         {
-            Console.WriteLine("Hello World!");
+            var discordHelper = new DiscordHelper();
+            await discordHelper.Init();
+            await Task.Delay(-1);
         }
     }
 }
