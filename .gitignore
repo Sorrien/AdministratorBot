@@ -265,3 +265,4 @@ appsettings.json
 authentication.json
 commands.json
 servers.json
+administrators.json
