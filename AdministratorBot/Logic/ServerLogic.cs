@@ -1,9 +1,10 @@
 ﻿using AdministratorBot.Admin;
 using AdministratorBot.Infrastructure;
 using AdministratorBot.Logic.Models.Server;
+using AdministratorBot.Settings;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -23,15 +24,19 @@ namespace AdministratorBot.Logic
     }
     public class ServerLogic : IServerLogic
     {
-        private readonly List<ServerModel> Servers;
+        private List<ServerModel> _servers;
         private readonly IProcessWrapper _processLogic;
         private readonly IIPWrapper _ipLogic;
         private readonly ILogger<ServerLogic> _logger;
 
-        public ServerLogic(IConfiguration configuration, IProcessWrapper processLogic, IIPWrapper ipLogic, ILogger<ServerLogic> logger)
+        public ServerLogic(IOptionsSnapshot<ServerOptions> serverOptions, IProcessWrapper processLogic, IIPWrapper ipLogic, ILogger<ServerLogic> logger)
         {
-            Servers = new List<ServerModel>();
-            configuration.GetSection("Servers").Bind(Servers);
+            if (serverOptions.Value.Servers == null)
+            {
+                throw new Exception("server config is null!");
+            }
+            _servers = serverOptions.Value.Servers;
+
             _processLogic = processLogic;
             _ipLogic = ipLogic;
             _logger = logger;
@@ -45,7 +50,7 @@ namespace AdministratorBot.Logic
             {
                 if (!string.IsNullOrWhiteSpace(namePart))
                 {
-                    server = Servers.FirstOrDefault(x => x.Name.ToLower().Contains(namePart.ToLower()));
+                    server = _servers.FirstOrDefault(x => x.Name.ToLower().Contains(namePart.ToLower()));
                 }
                 if (server != null)
                 {
@@ -256,7 +261,7 @@ namespace AdministratorBot.Logic
 
         public List<ServerModel> GetServers()
         {
-            return Servers;
+            return _servers;
         }
     }
 }

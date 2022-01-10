@@ -1,6 +1,7 @@
 ﻿using AdministratorBot.Infrastructure;
 using AdministratorBot.Logic;
 using AdministratorBot.Services;
+using AdministratorBot.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,8 +22,15 @@ namespace AdministratorBot
             {
                 b.SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", false, true);
-            }).ConfigureServices(services =>
+            }).ConfigureServices((hostContext, services) =>
                 {
+                    services.AddOptions();
+                    
+                    services.Configure<ServerOptions>(hostContext.Configuration.GetSection(ServerOptions.Server));
+                    services.Configure<PermissionsOptions>(hostContext.Configuration.GetSection(PermissionsOptions.Permissions));
+                    services.Configure<AuthOptions>(hostContext.Configuration.GetSection(AuthOptions.Auth));
+                    services.Configure<CommandOptions>(hostContext.Configuration.GetSection(CommandOptions.Command));
+
                     services.AddHostedService<DiscordHostedService>();
                     services.AddTransient<IAdminBotLogic, AdminBotLogic>();
                     services.AddTransient<IDiscordLogic, DiscordLogic>();

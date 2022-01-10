@@ -1,4 +1,8 @@
 ﻿namespace AdministratorBot.Admin
 {
-    public record CommandModel(string Command, string Response);
+    public class CommandModel
+    {
+        public string Command { get; set; }
+        public string Response { get; set; }
+    }
 }

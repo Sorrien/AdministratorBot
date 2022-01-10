@@ -1,9 +1,10 @@
 ﻿using AdministratorBot.Logic;
+using AdministratorBot.Settings;
 using Discord;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,14 +15,18 @@ namespace AdministratorBot.Services
     {
         private readonly ILogger<DiscordHostedService> _logger;
         private readonly DiscordSocketClient _client;
-        private readonly IConfiguration _configuration;
         private readonly IDiscordLogic _discordLogic;
+        private readonly string _token;
 
-        public DiscordHostedService(ILogger<DiscordHostedService> logger, IConfiguration configuration, IDiscordLogic discordLogic)
+        public DiscordHostedService(ILogger<DiscordHostedService> logger, IDiscordLogic discordLogic, IOptions<AuthOptions> authOptions)
         {
             _logger = logger;
-            _configuration = configuration;
             _discordLogic = discordLogic;
+            if (authOptions.Value == null)
+            {
+                throw new Exception("Auth options were null!");
+            }
+            _token = authOptions.Value.Token;
 
             _client = new DiscordSocketClient(new DiscordSocketConfig()
             {
@@ -39,9 +44,7 @@ namespace AdministratorBot.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            string token = _configuration["auth:token"];
-
-            await _client.LoginAsync(TokenType.Bot, token);
+            await _client.LoginAsync(TokenType.Bot, _token);
             await _client.StartAsync();
         }
 

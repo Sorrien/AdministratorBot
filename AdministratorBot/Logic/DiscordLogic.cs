@@ -1,5 +1,7 @@
-﻿using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
+﻿using AdministratorBot.Settings;
+using Discord.WebSocket;
+using Microsoft.Extensions.Options;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,14 +14,23 @@ namespace AdministratorBot.Logic
     }
     public class DiscordLogic : IDiscordLogic
     {
-        private readonly string BotUsername;
-        private readonly string CommandPrefix;
+        private string _botUsername;
+        private string _commandPrefix;
         private readonly IAdminBotLogic _adminBotLogic;
 
-        public DiscordLogic(IConfiguration configuration, IAdminBotLogic adminBotLogic)
+        public DiscordLogic(IOptionsSnapshot<AuthOptions> authOptions, IOptionsSnapshot<CommandOptions> commandOptions, IAdminBotLogic adminBotLogic)
         {
-            BotUsername = configuration["auth:BotUsername"];
-            CommandPrefix = configuration["options:prefix"];
+            if (authOptions.Value == null)
+            {
+                throw new Exception("auth config is null!");
+            }
+            _botUsername = authOptions.Value.BotUsername;
+
+            if (commandOptions.Value == null)
+            {
+                throw new Exception("commands config is null!");
+            }
+            _commandPrefix = commandOptions.Value.Prefix;
             _adminBotLogic = adminBotLogic;
         }
 
@@ -27,8 +38,8 @@ namespace AdministratorBot.Logic
         {
             string content = SanitizeContent(message.Content);
             string response = "";
-            var mentionedBot = message.MentionedUsers.FirstOrDefault(x => x.Username == BotUsername) != null && message.Author.Username != BotUsername;
-            var hasCommandPrefix = content.Substring(0, 1) == CommandPrefix;
+            var mentionedBot = message.MentionedUsers.FirstOrDefault(x => x.Username == _botUsername) != null && message.Author.Username != _botUsername;
+            var hasCommandPrefix = content.Substring(0, 1) == _commandPrefix;
             if (hasCommandPrefix || mentionedBot)
             {
                 string command = content[1..];
